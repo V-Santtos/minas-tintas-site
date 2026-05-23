@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-brand-red:       #C8102E;
+  --color-brand-red-hover: #A80D25;
+  --color-brand-dark:      #141210;
+  --color-brand-offwhite:  #F7F5F2;
+  --color-brand-surface:   #EFECE8;
+  --color-brand-border:    #DDD9D5;
+  --color-whatsapp:        #25D366;
+  --color-whatsapp-hover:  #1da851;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-display: var(--font-fraunces);
+  --font-body:    var(--font-inter);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @keyframes autoScroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--color-brand-offwhite);
+    color: var(--color-brand-dark);
+    font-family: var(--font-body), Inter, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display), Fraunces, serif;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  ::selection { background: var(--color-brand-red); color: #fff; }
+}
+
+/* ── Utilitários globais ── */
+@layer utilities {
+  .eyebrow {
+    display: inline-block;
+    font-family: var(--font-body), Inter, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-brand-red);
+    margin-bottom: 20px;
+  }
+
+  .section-container {
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: clamp(20px, 4vw, 64px);
+  }
+
+  /* hover expansion fica no bloco @media min-width: 768px abaixo */
+
+  .maza-slider-wrap:hover .maza-slider-track { animation-play-state: paused; }
+
+  .divisor-rule.is-visible { transform: scaleX(1) !important; }
+  .divisor-phrase.is-visible { opacity: 1 !important; transform: translateY(0) !important; }
+
+  /* Hero — clip-path inicial (apenas desktop; mobile sobrescreve via media query) */
+  .hero-right-panel {
+    clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+  }
+
+  .hero-photo { background-position: center; }
+}
+
+/* ── Mobile (< 768px) ── */
+@media (max-width: 767px) {
+  /* ── Hero mobile: conteúdo empilhado + imagem card embaixo ── */
+  .hero-section    { min-height: unset !important; }
+  .hero-left-panel { padding-top: 72px !important; }
+  .hero-image-panel {
+    clip-path: none !important;
+    min-height: 300px !important;
+  }
+  .hero-logo-desktop { display: none !important; }
+  .hero-photo { background-position: 65% center; }
+
+  .hero-contact { font-size: 10px !important; gap: 0 !important; }
+  .hero-contact svg { width: 14px !important; height: 14px !important; margin-right: 3px !important; }
+
+  /* Reduz padding vertical das seções */
+  .section-mobile-pad { padding-top: 72px !important; padding-bottom: 60px !important; }
+
+  /* SobreSection — grid 2 colunas → 1 coluna */
+  .sobre-grid { grid-template-columns: 1fr !important; }
+
+  /* TexturasSection — faixas horizontais → verticais empilhadas */
+  .texturas-flex  { flex-direction: column !important; height: auto !important; max-height: none !important; }
+  .textura-strip       { flex: none !important; height: 160px !important; transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+  .textura-strip:hover { flex: none !important; }
+  .textura-strip--active { height: 280px !important; }
+  .textura-strip--shrunk { height: 100px !important; }
+
+  /* LinhasSection — card grid 2col → 1col */
+  .linha-card-inner { grid-template-columns: 1fr !important; }
+  .linha-art-panel  { min-height: 260px !important; }
+
+  /* ContatoSection — info 4col → 1col */
+  .contato-info-grid { grid-template-columns: 1fr !important; }
+  .contato-info-cell {
+    border-right:  none !important;
+    border-bottom: 1px solid #2E2A26 !important;
+    padding: 28px 24px !important;
+    text-align: center !important;
+  }
+  .contato-info-cell span,
+  .contato-info-cell p,
+  .contato-info-cell a { text-align: center !important; }
+  .contato-info-cell:last-child { border-bottom: none !important; }
+
+  /* Footer — 3col → 1col */
+  .footer-inner {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    justify-items: center !important;
+  }
+  .footer-meta { text-align: center !important; }
+}
+
+@media (min-width: 768px) {
+  .hero-logo-desktop { display: block !important; }
+
+  /* TexturasSection — hover expansion só no desktop */
+  .textura-strip       { transition: flex 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .textura-strip:hover { flex: 1.6 !important; }
 }
