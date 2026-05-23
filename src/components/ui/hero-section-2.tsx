@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { motion, type Variants, type Transition } from 'framer-motion'
 
@@ -135,9 +136,13 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
             transition={{ duration: 1.2, ease: EASE_WIPE }}
             style={{ position: 'absolute', inset: 0 }}
           >
-            <div
-              className="hero-photo"
-              style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover' }}
+            <Image
+              src={backgroundImage}
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 40vw"
+              style={{ objectFit: 'cover' }}
             />
           </motion.div>
         </div>
