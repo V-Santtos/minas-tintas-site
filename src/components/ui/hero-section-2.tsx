@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import { cn } from '@/lib/utils'
 import { motion, type Variants, type Transition } from 'framer-motion'
-import { gsap } from 'gsap'
 
 const InfoIcon = ({ type }: { type: 'website' | 'phone' | 'address' }) => {
   const icons = {
@@ -54,27 +53,13 @@ const itemVariants: Variants = {
   visible: { y: 0, opacity: 1, transition: itemTransition },
 }
 
+const WIPE_INITIAL = 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)'
+const WIPE_FINAL   = 'polygon(25% 0, 100% 0, 100% 100%, 12% 100%)'
+const EASE_WIPE    = [0.76, 0, 0.24, 1] as const
+const EASE_STRIPE  = [0.33, 1, 0.68, 1] as const
+
 const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
   ({ className, logo, title, subtitle, callToAction, backgroundImage, contactInfo }, ref) => {
-    const photoRef   = useRef<HTMLDivElement>(null)
-    const stripe1Ref = useRef<HTMLDivElement>(null)
-    const stripe2Ref = useRef<HTMLDivElement>(null)
-    const stripe3Ref = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-      const els = [photoRef.current, stripe1Ref.current, stripe2Ref.current, stripe3Ref.current]
-      const clipStart = 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)'
-      const clipEnd   = 'polygon(25% 0, 100% 0, 100% 100%, 0% 100%)'
-
-      gsap.set(els, { clipPath: clipStart })
-
-      gsap.timeline()
-        .to(photoRef.current,   { clipPath: clipEnd, duration: 1.2, ease: 'power3.inOut' }, 0)
-        .to(stripe1Ref.current, { clipPath: clipEnd, duration: 1.2, ease: 'power3.inOut' }, 0.12)
-        .to(stripe2Ref.current, { clipPath: clipEnd, duration: 1.2, ease: 'power3.inOut' }, 0.25)
-        .to(stripe3Ref.current, { clipPath: clipEnd, duration: 1.2, ease: 'power3.inOut' }, 0.4)
-    }, [])
-
     return (
       <motion.section
         ref={ref}
@@ -123,11 +108,38 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           </motion.footer>
         </div>
 
-        <div className="relative w-full min-h-[300px] ml-20 -mt-10 md:ml-0 md:w-1/2 md:my-[168px] lg:w-2/5">
-          <div ref={stripe3Ref} style={{ position: 'absolute', inset: 0, background: '#141210', transform: 'translateX(-45px)', clipPath: 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)' }} />
-          <div ref={stripe2Ref} style={{ position: 'absolute', inset: 0, background: '#C8102E',  transform: 'translateX(-30px)', clipPath: 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)' }} />
-          <div ref={stripe1Ref} style={{ position: 'absolute', inset: 0, background: '#EFECE8',  transform: 'translateX(-15px)', clipPath: 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)' }} />
-          <div ref={photoRef} className="hero-photo" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', clipPath: 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)' }} />
+        <div className="relative w-full min-h-[300px] ml-20 -mt-10 md:ml-0 md:w-1/2 md:my-[168px] lg:w-2/5 overflow-hidden">
+          {/* Filhos: mesmo clip-path da foto + translateX → tira diagonal de 15px cada */}
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: -45 }}
+            transition={{ duration: 0.8, ease: EASE_STRIPE, delay: 0.5 }}
+            style={{ position: 'absolute', inset: 0, background: '#141210', clipPath: WIPE_FINAL }}
+          />
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: -30 }}
+            transition={{ duration: 0.8, ease: EASE_STRIPE, delay: 0.2 }}
+            style={{ position: 'absolute', inset: 0, background: '#C8102E', clipPath: WIPE_FINAL }}
+          />
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: -15 }}
+            transition={{ duration: 0.8, ease: EASE_STRIPE, delay: 0.35 }}
+            style={{ position: 'absolute', inset: 0, background: '#EFECE8', clipPath: WIPE_FINAL }}
+          />
+          {/* Card principal: wipe diagonal */}
+          <motion.div
+            initial={{ clipPath: WIPE_INITIAL }}
+            animate={{ clipPath: WIPE_FINAL }}
+            transition={{ duration: 1.2, ease: EASE_WIPE }}
+            style={{ position: 'absolute', inset: 0 }}
+          >
+            <div
+              className="hero-photo"
+              style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover' }}
+            />
+          </motion.div>
         </div>
       </motion.section>
     )
