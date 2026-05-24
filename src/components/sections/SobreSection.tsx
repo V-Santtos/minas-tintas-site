@@ -82,6 +82,11 @@ export default function SobreSection() {
             style={{ objectFit: 'cover' }}
             loading="lazy"
           />
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(247,245,242,0.6) 0%, transparent 55%)',
+            pointerEvents: 'none',
+          }} />
         </div>
 
         <div>
