@@ -14,13 +14,35 @@ export default function MazaSection() {
   const titleRef   = useRef<HTMLHeadingElement>(null)
   const paraRef    = useRef<HTMLParagraphElement>(null)
   const trackRef   = useRef<HTMLDivElement>(null)
-  const tweenRef   = useRef<gsap.core.Tween | null>(null)
+  const tweenRef       = useRef<gsap.core.Tween | null>(null)
+  const dragRef        = useRef({ active: false, startX: 0, startGsapX: 0, hasDragged: false })
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const resumeFromPosition = () => {
+    const track = trackRef.current
+    if (!track) return
+    const halfWidth = track.scrollWidth / 2
+    // Normaliza x para o intervalo [-halfWidth, 0]
+    let x = gsap.getProperty(track, 'x') as number
+    x = ((x % halfWidth) + halfWidth) % halfWidth - halfWidth
+    gsap.set(track, { x })
+    tweenRef.current?.kill()
+    const fraction = 1 + x / halfWidth
+    tweenRef.current = gsap.to(track, {
+      x: -halfWidth,
+      duration: 28 * fraction,
+      ease: 'none',
+      onComplete: () => {
+        gsap.set(track, { x: 0 })
+        tweenRef.current = gsap.to(track, { x: -halfWidth, duration: 28, ease: 'none', repeat: -1 })
+      },
+    })
+  }
 
   useEffect(() => {
     const track = trackRef.current
     if (!track) return
 
-    // scrollWidth/2 = largura exata do conteúdo original (conteúdo é duplicado)
     gsap.set(track, { x: 0 })
     tweenRef.current = gsap.to(track, {
       x: -track.scrollWidth / 2,
@@ -39,16 +61,46 @@ export default function MazaSection() {
     return () => {
       tweenRef.current?.kill()
       ctx.revert()
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
     }
   }, [])
 
   const pauseScroll = () => tweenRef.current?.pause()
-  const resumeScroll = () => tweenRef.current?.resume()
+  const resumeScroll = () => { if (!dragRef.current.active) tweenRef.current?.resume() }
 
-  const scaleUp   = (e: React.MouseEvent<HTMLElement>) =>
-    gsap.to(e.currentTarget, { scale: 1.06, duration: 0.25, ease: 'power2.out' })
-  const scaleDown = (e: React.MouseEvent<HTMLElement>) =>
-    gsap.to(e.currentTarget, { scale: 1, duration: 0.25, ease: 'power2.out' })
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    e.currentTarget.style.cursor = 'grabbing'
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+    tweenRef.current?.pause()
+    dragRef.current = { active: true, startX: e.clientX, startGsapX: gsap.getProperty(trackRef.current!, 'x') as number, hasDragged: false }
+  }
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current.active || !trackRef.current) return
+    const delta = e.clientX - dragRef.current.startX
+    if (Math.abs(delta) > 5) dragRef.current.hasDragged = true
+    gsap.set(trackRef.current, { x: dragRef.current.startGsapX + delta })
+  }
+
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (dragRef.current.hasDragged) e.stopPropagation()
+  }
+
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current.active) return
+    e.currentTarget.style.cursor = 'grab'
+    dragRef.current.active = false
+    resumeTimerRef.current = setTimeout(resumeFromPosition, 2000)
+  }
+
+  const isHover = () => window.matchMedia('(hover: hover)').matches
+  const scaleUp   = (e: React.MouseEvent<HTMLElement>) => {
+    if (isHover()) gsap.to(e.currentTarget, { scale: 1.06, duration: 0.25, ease: 'power2.out' })
+  }
+  const scaleDown = (e: React.MouseEvent<HTMLElement>) => {
+    if (isHover()) gsap.to(e.currentTarget, { scale: 1, duration: 0.25, ease: 'power2.out' })
+  }
 
   return (
     <section ref={sectionRef} id="tintas" style={{ backgroundColor: '#FFFFFF', padding: '120px 0 180px', overflow: 'hidden' }}>
@@ -82,11 +134,19 @@ export default function MazaSection() {
       <div
         onMouseEnter={pauseScroll}
         onMouseLeave={resumeScroll}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onClickCapture={onClickCapture}
         style={{
           overflow: 'hidden',
           padding: '28px 0',
           WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
           maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+          touchAction: 'pan-y',
+          userSelect: 'none',
+          cursor: 'grab',
         }}
       >
         <div

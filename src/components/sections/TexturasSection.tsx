@@ -72,7 +72,7 @@ export default function TexturasSection() {
             }} />
 
             {/* Gradiente escuro no topo — legibilidade do número e hex */}
-            <div style={{
+            <div className="hidden md:block" style={{
               position: 'absolute', inset: 0,
               background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 35%)',
               pointerEvents: 'none',

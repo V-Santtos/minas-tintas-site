@@ -76,7 +76,7 @@ export default function SobreSection() {
             Loja Simonésia
           </span>
           <Image
-            src="/assets/interior-loja.jpg"
+            src="/assets/foto-oficial.png"
             alt="Interior da loja Minas Tintas em Simonésia, MG"
             fill
             style={{ objectFit: 'cover' }}
